@@ -809,6 +809,9 @@ AbstractFFTs.rfft(x::Fill, dims...) = AbstractFFTs.rfft(collect(x), dims...)
 AbstractFFTs.irfft(x::Fill, d, dims...) = AbstractFFTs.irfft(collect(x), d, dims...)
 AbstractFFTs.brfft(x::Fill, d, dims...) = AbstractFFTs.brfft(collect(x), d, dims...)
 
+_region(plan::AbstractFFTs.Plan) = plan.region
+_region(plan::AbstractFFTs.ScaledPlan) = _region(plan.p)
+
 # the adjoint jacobian of an FFT with respect to its input is the reverse FFT of the
 # gradient of its inputs, but with different normalization factor
 @adjoint function fft(xs)
@@ -819,14 +822,14 @@ end
 
 @adjoint function *(P::AbstractFFTs.Plan, xs)
   return P * xs, function(Δ)
-    N = prod(size(xs)[[P.region...]])
+    N = prod(size(xs,d) for d in _region(P))
     return (nothing, N * (P \ Δ))
   end
 end
 
 @adjoint function \(P::AbstractFFTs.Plan, xs)
   return P \ xs, function(Δ)
-    N = prod(size(Δ)[[P.region...]])
+    N = prod(size(xs,d) for d in _region(P))
     return (nothing, (P * Δ)/N)
   end
 end

@@ -1387,6 +1387,9 @@ end
             solRe
           @test gradient((X)->imag.(P * X)[mI, j], evalX)[1] ≈
             solIm
+          # here 1.0 * P is a ScaledPlan
+          @test gradient((X)->real.(1.0 * P * X)[mI, j], evalX)[1] ≈
+            solRe
         elseif typeof(P) <: AbstractFFTs.Plan
           @test gradient((X)->real.(P \ X)[mI, j], evalX)[1] ≈
             solRe
