@@ -71,9 +71,14 @@ julia> hessian(sin, pi/2)
 """
 hessian(f, x) = hessian_dual(f, x)
 
-hessian_dual(f, x::AbstractArray) = forward_jacobian(x -> gradient(f, x)[1], x)[2]
+function hessian_dual(f, x::AbstractArray)
+  forward_jacobian(x) do x
+    g = gradient(f, x)[1]
+    isnothing(g) ? zero(x) : g
+  end[2]
+end
 
-hessian_dual(f, x::Number) = ForwardDiff.derivative(x -> gradient(f, x)[1], x)
+hessian_dual(f, x::Number) = ForwardDiff.derivative(x -> something(gradient(f, x)[1], zero(x)), x)
 
 """
     hessian_reverse(f, x)
@@ -82,9 +87,14 @@ This should be equivalent to [`hessian(f, x)`](@ref hessian),
 but implemented using reverse over reverse mode, all Zygote.
 (This is usually much slower, and more likely to find errors.)
 """
-hessian_reverse(f, x::AbstractArray) = jacobian(x -> gradient(f, x)[1], x)[1]
+function hessian_reverse(f, x::AbstractArray)
+  jacobian(x) do x
+    g = gradient(f, x)[1]
+    isnothing(g) ? zero(x) : g
+  end[1]
+end
 
-hessian_reverse(f, x::Number) = gradient(x -> gradient(f, x)[1], x)[1]
+hessian_reverse(f, x::Number) = something(gradient(x -> something(gradient(f, x)[1], zero(x)), x)[1], zero(x))
 
 
 """

@@ -11,10 +11,14 @@ using Zygote: hessian_dual, hessian_reverse
     @test_broken hess(((x,y),) -> x*y, randn(2)) ≈ [0 1; 1 0]
   end
   @test hess(x -> sum(x.^3), [1 2; 3 4]) ≈ Diagonal([6, 18, 12, 24])
-  @test hess(sin, pi/2) ≈ -1
+  @test hess(x -> 1, [1 2; 3 4]) == zeros(Int, 4, 4)  # 1st derivative is zero, catches "nothing"
 
-  @test_throws Exception hess(sin, im*pi)
+  # scalar input
+  @test hess(sin, pi/2) ≈ -1
+  @test hess(x -> 1, pi/2) == 0
+
   @test_throws Exception hess(x -> x+im, pi)
+  @test_throws Exception hess(x -> abs2(sin(x)), im*pi)
   @test_throws Exception hess(identity, randn(2))
 end
 
