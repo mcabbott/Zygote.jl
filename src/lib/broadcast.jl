@@ -48,7 +48,6 @@ end
 trim(x, Δ) = reshape(Δ, ntuple(i -> axes(Δ, i), Val(ndims(x))))
 
 unbroadcast(x::AbstractArray, x̄, q=false) = begin
-   # @show q 
   axes(x) == axes(x̄) ? (q ? copy(x̄) : x̄) :
   length(x) == length(x̄) ? trim(x, q ? copy(x̄) : x̄) :
     trim(x, accum_sum(x̄, dims = ntuple(i -> size(x, i) == 1 ? i : ndims(x̄)+1, Val(ndims(x̄)))))
