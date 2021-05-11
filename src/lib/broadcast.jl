@@ -48,8 +48,8 @@ end
 trim(x, Δ) = reshape(Δ, ntuple(i -> size(Δ, i), Val(ndims(x))))
 
 unbroadcast(x::AbstractArray, x̄, q=false) = begin
-  length(x) == length(x̄) ? trim(x, q ? copy(x̄) : x̄) :
-  size(x) == size(x̄) ? (q ? copy(x̄) : x̄) :
+  size(x) == size(x̄) ? (q ? _copy(x̄) : x̄) :
+    length(x) == length(x̄) ? trim(x, q ? _copy(x̄) : x̄) :
     trim(x, accum_sum(x̄, dims = ntuple(i -> size(x, i) == 1 ? i : ndims(x̄)+1, Val(ndims(x̄)))))
 end
 unbroadcast(x::Number, x̄, _=false) = accum_sum(x̄)
@@ -66,7 +66,7 @@ unbroadcast(x::AbstractArray, x̄::Nothing, _=false) = nothing
 # right arrays.
 
 @adjoint broadcasted(::typeof(+), x::Numeric, xs::Numeric...) =
-  broadcast(+, x, xs...), ȳ -> (nothing, unbroadcast(x, ȳ), map(x -> unbroadcast(x, ȳ, true), xs)...)
+  broadcast(+, x, xs...), ȳ -> (nothing, unbroadcast(x, ȳ, true), map(x -> unbroadcast(x, ȳ, true), xs)...)
 
 @adjoint broadcasted(::typeof(-), x::Numeric, y::Numeric) = x .- y,
   Δ -> (nothing, unbroadcast(x, Δ), -unbroadcast(y, Δ))

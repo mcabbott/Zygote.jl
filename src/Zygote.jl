@@ -29,6 +29,7 @@ include("compiler/chainrules.jl")
 include("compiler/interface.jl")
 include("compiler/show.jl")
 
+include("lib/copywrite.jl")
 include("lib/grad.jl")
 include("lib/lib.jl")
 include("lib/number.jl")
