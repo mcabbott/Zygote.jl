@@ -45,11 +45,11 @@ function Base.reducedim_init(::typeof(identity), ::typeof(accum), A::AbstractArr
   Base.reducedim_initarray(A, region, nothing, Union{Nothing,eltype(A)})
 end
 
-trim(x, Δ) = reshape(Δ, ntuple(i -> axes(Δ, i), Val(ndims(x))))
+trim(x, Δ) = reshape(Δ, ntuple(i -> size(Δ, i), Val(ndims(x))))
 
 unbroadcast(x::AbstractArray, x̄, q=false) = begin
-  axes(x) == axes(x̄) ? (q ? copy(x̄) : x̄) :
   length(x) == length(x̄) ? trim(x, q ? copy(x̄) : x̄) :
+  size(x) == size(x̄) ? (q ? copy(x̄) : x̄) :
     trim(x, accum_sum(x̄, dims = ntuple(i -> size(x, i) == 1 ? i : ndims(x̄)+1, Val(ndims(x̄)))))
 end
 unbroadcast(x::Number, x̄, _=false) = accum_sum(x̄)
