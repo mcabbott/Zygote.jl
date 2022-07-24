@@ -268,7 +268,7 @@ Convert input `dx` from the Zygote format to the ChainRules differential types.
 This is similar to `wrap_chainrules_input(dx)`, but because it gets `primal::T`,
 it can turn `NamedTuple`s into `Tangent{T}(...)` not `Tangent{Any}(...)`.
 """
-zygote2differential(x, primal) = z2d(x, primal)
+zygote2differential(dx, primal) = z2d(dx, primal)
 zygote2differential(::Nothing, ::Any) = NoTangent()
 zygote2differential(t::Tuple, primal::Tuple) = map(z2d, t, primal)
 zygote2differential(t::Tuple, primal) = (@warn "primal should be a tuple, not $primal"; return t)
@@ -347,3 +347,14 @@ z2d(dx::NamedTuple{L,S}, primal::AbstractDict) where {L,S<:Tuple{Vararg{Union{Nu
 end
 
 z2d(dx::Ref, primal) = z2d(dx[], primal)  # mutable structs
+
+# Gradient rules, for 2nd derivatives: CR -> Z
+@adjoint wrap_chainrules_output(dx1) = wrap_chainrules_output(@show dx1), tuple ∘ wrap_chainrules_input ∘ _show(1, dx1)
+@adjoint wrap_chainrules_output(dx::Tuple) = wrap_chainrules_output(dx), tuple  # On a whole argument tuple, don't wrap its gradient in a Tangent!
+
+# Z -> CR
+@adjoint wrap_chainrules_input(dx2) = wrap_chainrules_input(@show dx2), tuple ∘ wrap_chainrules_output ∘ _show(2, dx2)
+@adjoint zygote2differential(dx3, primal) = zygote2differential(@show(dx3), @show primal), tuple ∘ wrap_chainrules_output ∘ _show(3, dx3)
+
+_show(s, dx) = ddx -> (println("  ", s, " dx = ", dx, " => ddx = ", ddx); ddx)
+
