@@ -306,23 +306,23 @@ end
   Iterators.Zip(xs), back
 end
 
-# Reductions
-@adjoint function sum(xs::AbstractArray; dims = :)
-  if dims === (:)
-    sum(xs), Δ -> (Fill(Δ, size(xs)),)
-  else
-    sum(xs, dims = dims), Δ -> (similar(xs) .= Δ,)
-  end
-end
-
-@adjoint function sum(f, xs::AbstractArray{<:AbstractArray}; kws...)
-  @assert !haskey(kws, :init) # TODO add init support (julia 1.6)
-  return pullback(__context__, (f, xs) -> sum(f.(xs); kws...), f, xs)
-end
-
-@adjoint function sum(xs::AbstractArray{Bool}; dims = :)
-  sum(xs, dims = dims), Δ -> (nothing,)
-end
+# # Reductions
+# @adjoint function sum(xs::AbstractArray; dims = :)
+#   if dims === (:)
+#     sum(xs), Δ -> (Fill(Δ, size(xs)),)
+#   else
+#     sum(xs, dims = dims), Δ -> (similar(xs) .= Δ,)
+#   end
+# end
+#
+# @adjoint function sum(f, xs::AbstractArray{<:AbstractArray}; kws...)
+#   @assert !haskey(kws, :init) # TODO add init support (julia 1.6)
+#   return pullback(__context__, (f, xs) -> sum(f.(xs); kws...), f, xs)
+# end
+#
+# @adjoint function sum(xs::AbstractArray{Bool}; dims = :)
+#   sum(xs, dims = dims), Δ -> (nothing,)
+# end
 
 function _pullback(cx::AContext, ::typeof(prod), f, xs::AbstractArray)
   y, back = pullback(cx, ((f, xs) -> prod(f.(xs))), f, xs)
@@ -590,16 +590,16 @@ function _pullback(cx::AContext,
   return _pullback(cx, (A, p) -> _apply_series_func(f, A, p), A, p)
 end
 
-# ChainRules has this also but does not use FillArrays, so we have our own definition
-# for improved performance. See https://github.com/JuliaDiff/ChainRules.jl/issues/46
-Zygote.@adjoint function LinearAlgebra.tr(x::AbstractMatrix)
-  # x is a squre matrix checked by tr,
-  # so we could just use Eye(size(x, 1))
-  # to create a Diagonal
-  tr(x), function (Δ::Number)
-    (Diagonal(Fill(Δ, (size(x, 1), ))), )
-  end
-end
+# # ChainRules has this also but does not use FillArrays, so we have our own definition
+# # for improved performance. See https://github.com/JuliaDiff/ChainRules.jl/issues/46
+# Zygote.@adjoint function LinearAlgebra.tr(x::AbstractMatrix)
+#   # x is a squre matrix checked by tr,
+#   # so we could just use Eye(size(x, 1))
+#   # to create a Diagonal
+#   tr(x), function (Δ::Number)
+#     (Diagonal(Fill(Δ, (size(x, 1), ))), )
+#   end
+# end
 
 # Various sensitivities for `literal_getproperty`, depending on the 2nd argument.
 @adjoint function literal_getproperty(C::Cholesky, ::Val{:uplo})

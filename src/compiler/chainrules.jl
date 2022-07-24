@@ -186,6 +186,9 @@ end
 # Restore splatted arrays
 _project(x::AbstractArray, dx::Tuple) = _project(x, reshape(collect(dx), axes(x)))
 
+# Skip entirely for simple arrays
+_project(x::DenseArray, dx::AbstractArray) = dx
+
 # Piracy:
 # CRC likes Tangent{AbstractArray}, but Zygote makes Tangent{Any}
 # in particular this would hit https://github.com/JuliaDiff/ChainRulesCore.jl/blob/2ec2549b73b22bc08f554dae864fb650cfb9c3d7/src/projection.jl#L139
