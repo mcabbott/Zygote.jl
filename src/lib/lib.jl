@@ -107,7 +107,7 @@ using Base: tail
 @adjoint function literal_getindex(xs::NTuple{N,Any}, ::Val{i}) where {N,i}
   val = xs[i]
   function back(Δ)
-    accum_param(__context__, val, Δ) === nothing && return
+    accum_param(__context__, val, Δ)
     return ntuple(j -> i == j ? Δ : nothing, Val(N)), nothing
   end
   val, back
@@ -116,7 +116,7 @@ end
 @adjoint function getindex(xs::NTuple{N,Any}, i::Integer) where N
   val = xs[i]
   function back(Δ)
-    accum_param(__context__, val, Δ) === nothing && return
+    accum_param(__context__, val, Δ)
     return ntuple(j -> i == j ? Δ : nothing, Val(N)), nothing
   end
   return val, back
@@ -228,8 +228,8 @@ end
 
 @adjoint function literal_getfield(x, ::Val{f}) where f
   val = getfield(x, f)
-  function back(Δ)
-    accum_param(__context__, val, Δ) === nothing && return
+  function literal_getfield_back(Δ)
+    accum_param(__context__, val, Δ)
     if isimmutable(x)
       dx = (; nt_nothing(x)..., pair(Val(f), Δ, x)...)
       (_project(x, dx), nothing)
@@ -239,7 +239,7 @@ end
       return (dx,nothing)
     end
   end
-  unwrap(val), back
+  unwrap(val), literal_getfield_back
 end
 
 _pullback(cx::AContext, ::typeof(getfield), x, field_name::Symbol) =
