@@ -545,6 +545,36 @@ end
 
 end
 
+@testset "mutable struct, issue 1127" begin
+  mutable struct Particle
+      q::Array{Float64,1}
+      p::Array{Float64,1} 
+      m::Float64
+  end
+
+  _dot(arr1,arr2) = sum(.*(arr1,arr2))
+  modsquare(arr1) = _dot(arr1,arr1)
+  _norm(arr1) = sqrt(_dot(arr1,arr1))
+  function energy(p1::Particle, p2::Particle)
+      σ=0.1
+      ϵ=700.0
+      perg = -1.0*100.0 * p1.m * p2.m * (1.0/(_norm(p1.q-p2.q)))
+  end
+  function hamiltonian(parray)
+      s = 0.0
+      for i in 1:length(parray)-1
+          for j in i+1:(length(parray))
+              s = s + energy(parray[i], parray[j])
+          end
+      end
+      return s + sum([0.5*modsquare(p.p)/p.m for p  in parray])
+  end
+
+  p1 = Particle(zeros(3) , ones(3),1.0)
+  p2 = Particle(zeros(3).+0.1,ones(3),1.0)
+  @test gradient(hamiltonian, [p1,p2])[1][1] isa NamedTuple{(:q, :p, :m)}
+end
+
 @testset "NamedTuples" begin
   @test gradient(x -> x.a, (a=1, b=2)) == ((a = 1, b = nothing),)
   @test gradient(x -> x[1].a, [(a=1, b=2)]) == ([(a = 1, b = nothing)],)

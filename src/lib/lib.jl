@@ -37,6 +37,10 @@ function accum(x::RefValue, y::RefValue)
   return x
 end
 
+# This is an awful hack to make more things work with mutable structs.
+
+accum(x::RefValue{Any}, y::NamedTuple) = (x[] = Zygote.accum(x.x, y); x)
+
 # Core functions
 @nograd eps, Base.eval, Core.TypeVar, Core.UnionAll, Symbol
 

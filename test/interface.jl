@@ -232,14 +232,14 @@ end
   end
 
   @testset "Params nesting" begin
-    struct Dense{F,T,S}
+    struct Dense2{F,T,S}
       W::T
       b::S
       σ::F
     end
   
-    (d::Dense)(x) = d.σ.(d.W * x .+ d.b)
-    d = Dense(ones(Float32, 3,3), zeros(Float32, 3), identity)
+    (d::Dense2)(x) = d.σ.(d.W * x .+ d.b)
+    d = Dense2(ones(Float32, 3,3), zeros(Float32, 3), identity)
     ps = Zygote.Params([d.W, d.b])
     r = ones(Float32, 3,3)
   
